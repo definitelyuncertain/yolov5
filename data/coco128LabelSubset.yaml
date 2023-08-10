@@ -13,7 +13,7 @@ train: images/train2017  # train images (relative to 'path') 128 images
 val: images/train2017  # val images (relative to 'path') 128 images
 test:  # test images (optional)
 
-# Classes
+# Classes available in dataset
 names:
   0: person
   1: bicycle
@@ -96,6 +96,7 @@ names:
   78: hair drier
   79: toothbrush
 
+# Subset of classes to include in training (optional)
 include_names:
   - bicycle
   - motorcycle
