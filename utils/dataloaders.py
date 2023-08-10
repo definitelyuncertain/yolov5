@@ -449,7 +449,8 @@ class LoadImagesAndLabels(Dataset):
                  stride=32,
                  pad=0.0,
                  min_items=0,
-                 prefix=''):
+                 prefix='',
+                 include_class=None):
         self.img_size = img_size
         self.augment = augment
         self.hyp = hyp
@@ -530,17 +531,26 @@ class LoadImagesAndLabels(Dataset):
         self.indices = range(n)
 
         # Update labels
-        include_class = []  # filter labels to include only these classes (optional)
-        self.segments = list(self.segments)
-        include_class_array = np.array(include_class).reshape(1, -1)
+        # filter labels to include only these classes (optional)
+        include_class = [] if include_class is None else list(include_class)
+        LOGGER.info(f"Filtering labels for classes {include_class}")
+        new_label_idx = None
+        if len(include_class):
+            new_label_idx = np.array([-1] * (np.max(include_class) + 1), dtype=int)
+            for i, c in enumerate(include_class):
+                new_label_idx[c] = i
+        include_class_array = np.array(include_class, dtype=int).reshape(1, -1)
         for i, (label, segment) in enumerate(zip(self.labels, self.segments)):
-            if include_class:
+            if len(include_class) and len(label) != 0:
                 j = (label[:, 0:1] == include_class_array).any(1)
                 self.labels[i] = label[j]
+                self.labels[i][:, 0] = new_label_idx[self.labels[i][:, 0].astype(int)]
                 if segment:
-                    self.segments[i] = [segment[idx] for idx, elem in enumerate(j) if elem]
+                    self.segments[i] = segment[j]
             if single_cls:  # single-class training, merge all classes into 0
                 self.labels[i][:, 0] = 0
+                if segment:
+                    self.segments[i][:, 0] = 0
 
         # Rectangular Training
         if self.rect:
