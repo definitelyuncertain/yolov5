@@ -533,19 +533,23 @@ class LoadImagesAndLabels(Dataset):
         self.indices = range(n)
 
         # Update labels
-        # filter labels to include only these classes (optional)
+        # filter labels to include only a user-specified subset of classes (optional)
         include_classes = [] if include_classes is None else list(include_classes)
         LOGGER.info(f"Filtering labels for classes {include_classes}")
+        # Re-number included classes in the order specified by the user
         new_label_idx = None
         if len(include_classes):
             new_label_idx = np.array([-1] * (np.max(include_classes) + 1), dtype=int)
             for i, c in enumerate(include_classes):
                 new_label_idx[c] = i
+
         include_class_array = np.array(include_classes, dtype=int).reshape(1, -1)
+
         for i, (label, segment) in enumerate(zip(self.labels, self.segments)):
             if len(include_classes) and len(label) != 0:
                 j = (label[:, 0:1] == include_class_array).any(1)
                 self.labels[i] = label[j]
+                # Modify labels to use the new class numbers
                 self.labels[i][:, 0] = new_label_idx[self.labels[i][:, 0].astype(int)]
                 if segment:
                     self.segments[i] = segment[j]

@@ -120,6 +120,16 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
     names = {0: 'item'} if single_cls and len(data_dict['names']) != 1 else data_dict['names']  # class names
     is_coco = isinstance(val_path, str) and val_path.endswith('coco/val2017.txt')  # COCO dataset
 
+    # Classes to include in training
+    include_classes = None  # Default, means all classes included
+    # Sequence of user specified class names (optional)
+    include_names = (data_dict['include_names']) if 'include_names' in data_dict else []
+    if len(include_names) != 0:
+        all_names_map = {name: i for i, name in names.items()}
+        # Class numbers of user-specified class subset according to dataset
+        include_classes = [all_names_map[c_] for c_ in include_names]
+        LOGGER.info(f"Including classes {include_classes}")
+
     # Model
     check_suffix(weights, '.pt')  # check weights
     pretrained = weights.endswith('.pt')
@@ -190,14 +200,6 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
     if opt.sync_bn and cuda and RANK != -1:
         model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model).to(device)
         LOGGER.info('Using SyncBatchNorm()')
-
-    # Filter classes
-    include_classes = None
-    include_names = (data_dict['include_names']) if 'include_names' in data_dict else []
-    if len(include_names) != 0:
-        all_names_map = {name: i for i, name in names.items()}
-        include_classes = [all_names_map[c_] for c_ in include_names]
-        LOGGER.info(f"Including classes {include_classes}")
 
     # Trainloader
     train_loader, dataset = create_dataloader(train_path,
