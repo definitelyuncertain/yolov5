@@ -163,6 +163,14 @@ def run(
     iouv = torch.linspace(0.5, 0.95, 10, device=device)  # iou vector for mAP@0.5:0.95
     niou = iouv.numel()
 
+    include_classes = None
+    names = {0: 'item'} if single_cls and len(data['names']) != 1 else data['names']  # class names
+    include_names = (data['include_names']) if 'include_names' in data else []
+    if len(include_names) != 0:
+        all_names_map = {name: i for i, name in names.items()}
+        include_classes = [all_names_map[c_] for c_ in include_names]
+        LOGGER.info(f"Including classes {include_classes}")
+
     # Dataloader
     if not training:
         if pt and not single_cls:  # check --weights are trained on --data
@@ -180,7 +188,8 @@ def run(
                                        pad=pad,
                                        rect=rect,
                                        workers=workers,
-                                       prefix=colorstr(f'{task}: '))[0]
+                                       prefix=colorstr(f'{task}: '),
+                                       include_classes=include_classes)[0]
 
     seen = 0
     confusion_matrix = ConfusionMatrix(nc=nc)

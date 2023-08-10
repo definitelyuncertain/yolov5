@@ -118,7 +118,6 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
     train_path, val_path = data_dict['train'], data_dict['val']
     nc = 1 if single_cls else int(data_dict['nc'])  # number of classes
     names = {0: 'item'} if single_cls and len(data_dict['names']) != 1 else data_dict['names']  # class names
-    include_names = (data_dict['include_names']) if 'include_names' in data_dict else None
     is_coco = isinstance(val_path, str) and val_path.endswith('coco/val2017.txt')  # COCO dataset
 
     # Model
@@ -194,6 +193,7 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
 
     # Filter classes
     include_classes = None
+    include_names = (data_dict['include_names']) if 'include_names' in data_dict else []
     if len(include_names) != 0:
         all_names_map = {name: i for i, name in names.items()}
         include_classes = [all_names_map[c_] for c_ in include_names]
