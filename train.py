@@ -196,7 +196,7 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
     include_classes = None
     if len(include_names) != 0:
         all_names_map = {name: i for i, name in names.items()}
-        include_classes = [all_names_map[c_] for c_ in names]
+        include_classes = [all_names_map[c_] for c_ in include_names]
         LOGGER.info(f"Including classes {include_classes}")
 
     # Trainloader
